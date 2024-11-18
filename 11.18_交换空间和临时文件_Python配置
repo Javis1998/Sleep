@@ -1,0 +1,53 @@
+一. 交换空间配置
+1. 交换空间的意义
+类似虚拟内存，在物理内存不够的情况下，临时充当内存使用
+2. 创建交换空间
+1）查看系统当前的交换空间
+swapon --show
+free -h
+2）创建交换文件（创建/设置权限/格式化/启动/设置开机启动）
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+/swapfile none swap sw 0 0
+3）调整优先级
+swapon --priority 10 /swapfile
+二. tmpfs 临时文件系统
+1. 常用功能
+1）/tmp
+存储临时文件，如果下载安装爆存储了，应该就是 /tmp 文件配置过小
+2）/dev/shm
+实现共享内存，是 Linux 自动挂载的目录，默认的
+2. tmpfs的使用
+1）调整大小（不要超过物理内存+交换空间的和的大小）
+sudo mount -o remount,size=2G /mnt/tmpfs
+三. Python 配置（基于Centos）
+1. 配置步骤：
+1）安装 Python 源代码构建所需的开发工具和依赖项
+sudo yum groupinstall -y "Development Tools"
+sudo yum install -y wget openssl-devel bzip2-devel libffi-devel zlib-devel
+2）在指定Linux目录下下载并解压 Python 源代码
+目录选择：可以是 /opt 目录，用于存储新下载的应用
+cd /opt
+sudo wget https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
+sudo tar xzf Python-3.11.4.tgz
+cd Python-3.11.4
+3）编译安装 Python
+sudo ./configure --enable-optimizations --prefix=/opt/python3.11
+sudo make -j $(nproc)
+sudo make altinstall
+4）创建软连接或配置环境变量
+创建软连接（典型用法，将文件软连接到 /usr/bin 目录下文件，类似文件重定向，方便系统直接调用）：
+sudo ln -s /opt/python3.11/bin/python3.11 /usr/bin/python3.11
+sudo ln -s /opt/python3.11/bin/pip3.11 /usr/bin/pip3.11
+配置环境变量（优先级更高，通过修改 PATH 修改优先级，适合需要不同版本共存的场景，可以通过修改 PATH 灵活变动版本）：
+vim ~/.bashrc
+在文件末尾添加 export PATH=/opt/python3.11/bin:$PATH
+保存并退出 vim 编辑器
+重新加载配置文件 source ~/.bashrc
+5）验证安装
+python3.11 --version
+pip3.11 --version
+
+
